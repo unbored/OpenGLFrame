@@ -1,5 +1,5 @@
 //
-//  Light.hpp
+//  Light.h
 //  OpenGLFrame
 //
 //  Created by 钟擎 on 16/4/17.
@@ -57,6 +57,6 @@ public:
     void setCutOff(const float innerAngle, const float outerAngle)
     { cutoff = glm::cos(glm::radians(glm::vec2(innerAngle, outerAngle))); };
     void turnOnOff() { enabled = !enabled; };
-    void setUniform(const GLint program, const char* name);
+    void setUniform(const GLuint program, const char* name);
 };
 

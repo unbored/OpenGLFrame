@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		3C62E9551CC3201B00A56E1E /* Light.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C62E9531CC3201B00A56E1E /* Light.cpp */; settings = {ASSET_TAGS = (); }; };
+		3C7BA24B1CC4B5E000B8F069 /* Mesh.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C7BA2491CC4B5E000B8F069 /* Mesh.cpp */; settings = {ASSET_TAGS = (); }; };
+		3C7BA24D1CC4C2F600B8F069 /* libassimp.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C7BA24C1CC4C2F600B8F069 /* libassimp.3.2.0.dylib */; };
+		3C7BA2501CC4C44300B8F069 /* Model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C7BA24E1CC4C44300B8F069 /* Model.cpp */; settings = {ASSET_TAGS = (); }; };
 		3CA02A151C5D377000F0A5C7 /* libGLEW.1.13.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA02A141C5D377000F0A5C7 /* libGLEW.1.13.0.dylib */; };
 		3CA0CBC51C5D3D9D00E2A0AF /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA0CBC41C5D3D9D00E2A0AF /* OpenGL.framework */; };
 		3CA0CBC71C5D3F0300E2A0AF /* libglfw3.3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA0CBC61C5D3F0300E2A0AF /* libglfw3.3.1.dylib */; };
@@ -34,6 +37,11 @@
 		3C3B88191CC27B110070F4AC /* light.frag */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = light.frag; path = Shaders/light.frag; sourceTree = "<group>"; };
 		3C62E9531CC3201B00A56E1E /* Light.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Light.cpp; path = OpenGLFrame/Light.cpp; sourceTree = SOURCE_ROOT; };
 		3C62E9541CC3201B00A56E1E /* Light.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Light.h; path = OpenGLFrame/Light.h; sourceTree = SOURCE_ROOT; };
+		3C7BA2491CC4B5E000B8F069 /* Mesh.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Mesh.cpp; path = OpenGLFrame/Mesh.cpp; sourceTree = SOURCE_ROOT; };
+		3C7BA24A1CC4B5E000B8F069 /* Mesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Mesh.h; path = OpenGLFrame/Mesh.h; sourceTree = SOURCE_ROOT; };
+		3C7BA24C1CC4C2F600B8F069 /* libassimp.3.2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libassimp.3.2.0.dylib; path = ../../../../usr/local/Cellar/assimp/3.2/lib/libassimp.3.2.0.dylib; sourceTree = "<group>"; };
+		3C7BA24E1CC4C44300B8F069 /* Model.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Model.cpp; path = OpenGLFrame/Model.cpp; sourceTree = SOURCE_ROOT; };
+		3C7BA24F1CC4C44300B8F069 /* Model.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Model.h; path = OpenGLFrame/Model.h; sourceTree = SOURCE_ROOT; };
 		3CA02A061C5D322700F0A5C7 /* OpenGLFrame */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = OpenGLFrame; sourceTree = BUILT_PRODUCTS_DIR; };
 		3CA02A141C5D377000F0A5C7 /* libGLEW.1.13.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libGLEW.1.13.0.dylib; path = /usr/local/Cellar/glew/1.13.0/lib/libGLEW.1.13.0.dylib; sourceTree = "<absolute>"; };
 		3CA0CBC41C5D3D9D00E2A0AF /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
@@ -57,6 +65,7 @@
 				3CA02A151C5D377000F0A5C7 /* libGLEW.1.13.0.dylib in Frameworks */,
 				3CA0CBC71C5D3F0300E2A0AF /* libglfw3.3.1.dylib in Frameworks */,
 				3CF99F6E1C5E0ADA005EFC61 /* libSOIL.dylib in Frameworks */,
+				3C7BA24D1CC4C2F600B8F069 /* libassimp.3.2.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -66,8 +75,8 @@
 		3CA029FD1C5D322700F0A5C7 = {
 			isa = PBXGroup;
 			children = (
+				3C7BA24C1CC4C2F600B8F069 /* libassimp.3.2.0.dylib */,
 				3CF99F6F1C5E0AF8005EFC61 /* Libraries */,
-				3CF99F651C5DF176005EFC61 /* Shaders */,
 				3CA02A081C5D322700F0A5C7 /* OpenGLFrame */,
 				3CA02A071C5D322700F0A5C7 /* Products */,
 			);
@@ -84,12 +93,17 @@
 		3CA02A081C5D322700F0A5C7 /* OpenGLFrame */ = {
 			isa = PBXGroup;
 			children = (
+				3CF99F651C5DF176005EFC61 /* Shaders */,
 				3CF99F681C5DF5EA005EFC61 /* Shader.h */,
 				3CF99F691C5DF5EA005EFC61 /* Shader.cpp */,
 				3CF99F711C5E6E1F005EFC61 /* Camera.h */,
 				3CF99F701C5E6E1F005EFC61 /* Camera.cpp */,
-				3C62E9531CC3201B00A56E1E /* Light.cpp */,
 				3C62E9541CC3201B00A56E1E /* Light.h */,
+				3C62E9531CC3201B00A56E1E /* Light.cpp */,
+				3C7BA24A1CC4B5E000B8F069 /* Mesh.h */,
+				3C7BA2491CC4B5E000B8F069 /* Mesh.cpp */,
+				3C7BA24F1CC4C44300B8F069 /* Model.h */,
+				3C7BA24E1CC4C44300B8F069 /* Model.cpp */,
 				3CF99F631C5DEFCD005EFC61 /* main.cpp */,
 			);
 			name = OpenGLFrame;
@@ -105,6 +119,7 @@
 				3CF99F6B1C5DF8FA005EFC61 /* model.frag */,
 			);
 			name = Shaders;
+			path = ..;
 			sourceTree = "<group>";
 		};
 		3CF99F6F1C5E0AF8005EFC61 /* Libraries */ = {
@@ -177,7 +192,9 @@
 				3CF99F641C5DEFCD005EFC61 /* main.cpp in Sources */,
 				3CF99F721C5E6E1F005EFC61 /* Camera.cpp in Sources */,
 				3C62E9551CC3201B00A56E1E /* Light.cpp in Sources */,
+				3C7BA2501CC4C44300B8F069 /* Model.cpp in Sources */,
 				3CF99F6A1C5DF5EA005EFC61 /* Shader.cpp in Sources */,
+				3C7BA24B1CC4B5E000B8F069 /* Mesh.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -273,6 +290,7 @@
 					/usr/local/Cellar/glew/1.13.0/lib,
 					/usr/local/Cellar/glfw3/3.1.2/lib,
 					/opt/local/lib,
+					/usr/local/Cellar/assimp/3.2/lib,
 				);
 				PRODUCT_NAME = OpenGLFrame;
 			};
@@ -290,6 +308,7 @@
 					/usr/local/Cellar/glew/1.13.0/lib,
 					/usr/local/Cellar/glfw3/3.1.2/lib,
 					/opt/local/lib,
+					/usr/local/Cellar/assimp/3.2/lib,
 				);
 				PRODUCT_NAME = OpenGLFrame;
 			};

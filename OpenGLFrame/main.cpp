@@ -129,8 +129,6 @@ void glDisplay()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, resX, resY);
     
-//    glm::mat4 model;
-//    model = glm::rotate(model, (GLfloat)glfwGetTime() * 1.0f, glm::vec3(0.5f, 1.0f, 0.0f));
     glm::mat4 view;
     view = testCamera.viewMatrix();
     glm::mat4 projection;
@@ -153,14 +151,10 @@ void glDisplay()
     modelShader.use();
     modelShader.setUniform("view", 1, GL_FALSE, &view);
     modelShader.setUniform("projection", 1, GL_FALSE, &projection);
-//    glUniformMatrix4fv(testShader.location("model"), 1, GL_FALSE, glm::value_ptr(model));
-//    glUniformMatrix4fv(modelShader.location("view"), 1, GL_FALSE, glm::value_ptr(view));
-//    glUniformMatrix4fv(modelShader.location("projection"), 1, GL_FALSE, glm::value_ptr(projection));
-//    glUniform3f(modelShader.location("lightPos"), lightPos.x, lightPos.y, lightPos.z);
-//    glUniform3f(modelShader.location("lightColor"), lightColor.r, lightColor.g, lightColor.b);
+
     glm::vec3 cameraPos = testCamera.position();
     modelShader.setUniform("viewPos", cameraPos);
-//    glUniform3f(modelShader.location("viewPos"), cameraPos.x, cameraPos.y, cameraPos.z);
+
     lightDirect.setUniform(modelShader.getProgram(), "lightDirect");
     
     lightSpot.setLocation(cameraPos);
@@ -168,16 +162,15 @@ void glDisplay()
     lightSpot.setUniform(modelShader.getProgram(), "lightSpot");
 
     modelShader.setUniform("tex", 0);
-//    glUniform1i(modelShader.location("tex"), 0);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texID[0]);
+    
     modelShader.setUniform("tex1", 1);
-//    glUniform1i(modelShader.location("tex1"), 1);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, texID[1]);
+    
     glBindVertexArray(vaoID);
-//    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-//    glDrawArrays(GL_TRIANGLES, 0, 36);
+
     for(GLuint i = 0; i < 10; i++)
     {
         glm::mat4 model;
@@ -185,27 +178,10 @@ void glDisplay()
         GLfloat angle = 20.0f * i;
         model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
         modelShader.setUniform("model", 1, GL_FALSE, &model);
-//        glUniformMatrix4fv(modelShader.location("model"), 1, GL_FALSE, glm::value_ptr(model));
         
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
     glCheckError("modelDrawing");
-    
-    //========绘制光照点==========
-//    lightShader.use();
-//    glUniformMatrix4fv(lightShader.location("view"), 1, GL_FALSE, glm::value_ptr(view));
-//    glUniformMatrix4fv(lightShader.location("projection"), 1, GL_FALSE, glm::value_ptr(projection));
-//    glUniform3f(lightShader.location("lightPos"), lightPos.x, lightPos.y, lightPos.z);
-//    glUniform3f(lightShader.location("lightColor"), lightColor.r, lightColor.g, lightColor.b);
-//    glm::mat4 model;
-//    model = glm::translate(model, lightPos);
-//    model = glm::scale(model, glm::vec3(0.2f));
-//    glUniformMatrix4fv(lightShader.location("model"), 1, GL_FALSE, glm::value_ptr(model));
-//    glBindVertexArray(lightVaoID);
-//    glDrawArrays(GL_TRIANGLES, 0, 36);
-//    glBindVertexArray(0);
-//    
-//    glCheckError("lightDrawing");
 }
 
 ////////////各种初始化//////////////////////

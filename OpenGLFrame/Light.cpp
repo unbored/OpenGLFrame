@@ -70,7 +70,7 @@ void Light::searchAtt(int dist)
     attenuate = attTab[len-1].att;
 }
 
-void Light::setUniform(const GLint program, const char *name)
+void Light::setUniform(const GLuint program, const char *name)
 {
     std::string lightName = name;
     glUniform1i(glGetUniformLocation(program, (lightName + ".type").c_str()), (int)type);
