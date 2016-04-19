@@ -24,6 +24,11 @@ Camera::Camera()
     lastX = 0;
     lastY = 0;
     firstMouse = true;
+    
+    fovy = 45.0f;
+    near = 0.1f;
+    far = 1000.0f;
+    aspect = 1.0f;
 }
 
 Camera::~Camera()
@@ -34,8 +39,8 @@ void Camera::doMovement(bool upPressed, bool downPressed, bool leftPressed, bool
 {
     // 摄像机控制
     glm::vec3 tempFront;
-    //tempFront = front;   //自由运动
-    tempFront = glm::normalize(glm::vec3(front.x, height, front.z));   //FPS运动
+    tempFront = front;   //自由运动
+    //tempFront = glm::normalize(glm::vec3(front.x, height, front.z));   //FPS运动
     GLfloat cameraSpeed = speed * deltaTime;
 //    std::cout << cameraSpeed << std::endl;
     if(upPressed)
@@ -47,6 +52,17 @@ void Camera::doMovement(bool upPressed, bool downPressed, bool leftPressed, bool
     if(rightPressed)
         pos += glm::normalize(glm::cross(tempFront, up)) * cameraSpeed;
 }
+
+glm::mat4 Camera::viewMatrix()
+{
+    return glm::lookAt(pos, pos + front, up);
+};
+
+glm::mat4 Camera::projMatrix()
+{
+    return glm::perspective(fovy, aspect, near, far);
+}
+
 
 void Camera::mouseCallback(double xpos, double ypos)
 {

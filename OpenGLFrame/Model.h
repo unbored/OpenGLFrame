@@ -12,7 +12,7 @@
 #include <vector>
 #include <string>
 #include "GL/glew.h"
-#include "SOIL/SOIL.h"
+#include "FreeImage.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -22,6 +22,15 @@
 #include "Mesh.h"
 
 using namespace std;
+
+enum TextureType { Ambient, Diffuse, Specular };
+
+struct Texture
+{
+    GLuint id;
+//    TextureType type;
+    string path;
+};
 
 class Model
 {
@@ -37,11 +46,12 @@ private:
     
 public:
     GLboolean loadModel(const char* filename);
+    void draw(GLuint program);
     
 private:
-    void processNode(aiNode* node, const aiScene* scene);
-    Mesh processMesh(aiMesh* mesh, const aiScene* scene);
-    vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, TextureType texType);
+    void processNode(aiNode* node, const aiScene* scene, glm::mat4 transform);
+    Mesh processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 transform);
+    Material loadMaterial(aiMaterial* mat);
+    void loadMatTex(aiMaterial* mat, Material& targetMat, TextureType matType);
     GLuint textureFromFile(const char* filename);
-    
 };

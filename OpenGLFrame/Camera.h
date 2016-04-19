@@ -34,12 +34,22 @@ private:
     GLfloat yaw, pitch;
     bool firstMouse;
     
+    GLfloat fovy;
+    GLfloat near;
+    GLfloat far;
+    GLfloat aspect;
+    
 public:
     void doMovement(bool up, bool down, bool left, bool right);
     void mouseCallback(double xpos, double ypos);
     void calcFrame();
     void calcFrame(double delta) { deltaTime = delta; };
-    glm::mat4 viewMatrix() { return glm::lookAt(pos, pos + front, up); };
+    glm::mat4 viewMatrix();
+    glm::mat4 projMatrix();
     glm::vec3 position() { return pos; };
+    void setPos(glm::vec3 position) { pos = position; };
+    void setFovy(GLfloat degree) { fovy = degree; };
+    void setRange(GLfloat near, GLfloat far) { this->near = near; this->far = far; };
+    void setAspect(GLfloat aspect) { this->aspect = aspect; };
     glm::vec3 getFront() { return front; };
 };

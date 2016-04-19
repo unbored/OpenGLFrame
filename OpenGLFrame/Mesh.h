@@ -23,33 +23,38 @@ struct Vertex
     glm::vec3 position;
     glm::vec3 normal;
     glm::vec2 texCoord;
-    glm::vec4 color;
+//    glm::vec4 color;
 };
 
-enum TextureType { Ambient, Diffuse, Specular };
-
-struct Texture
+struct Material
 {
-    GLuint id;
-    TextureType type;
-    string path;
+    glm::vec3 ambientColor;
+    glm::vec3 diffuseColor;
+    glm::vec3 specularColor;
+    GLfloat shininess;
+    glm::bvec3 textured;
+    GLuint ambientTex;
+    GLuint diffuseTex;
+    GLuint specularTex;
 };
 
 class Mesh
 {
 public:
     Mesh();
-    Mesh(vector<Vertex> vertices, vector<Texture> textures, vector<GLuint> indices);
+    Mesh(vector<Vertex> vertices, vector<GLuint> indices, Material material, glm::mat4 transform);
     ~Mesh();
     
 private:
     GLuint VAO, VBO, EBO;
     vector<Vertex> vertices;
     vector<GLuint> indices;
-    vector<Texture> textures;
+    Material material;
+    glm::mat4 transform;
     
 public:
-    void setupVertices(vector<Vertex> vertices, vector<Texture> textures, vector<GLuint> indices);
+    void setupVertices(vector<Vertex> vertices, vector<GLuint> indices, Material material);
+    void setTransform(glm::mat4 transform) { this->transform = transform; };
     GLboolean setupMesh();
     void draw(GLuint program);
 };

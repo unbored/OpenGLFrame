@@ -57,6 +57,7 @@ public:
     void setCutOff(const float innerAngle, const float outerAngle)
     { cutoff = glm::cos(glm::radians(glm::vec2(innerAngle, outerAngle))); };
     void turnOnOff() { enabled = !enabled; };
+    void turnOnOff(bool state) { enabled = state; };
     void setUniform(const GLuint program, const char* name);
 };
 
