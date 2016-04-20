@@ -29,8 +29,8 @@ Light::Light()
     type = Directional;
     location = glm::vec3(0.0);
     direction = glm::vec3(0.0, 0.0, -1.0);
-    ambient = glm::vec3(0.1);
-    diffuse = glm::vec3(0.5);
+    ambient = glm::vec3(0.2);
+    diffuse = glm::vec3(0.8);
     specular = glm::vec3(1.0);
     attenuate = glm::vec3(1.0,	0.045,	0.0075);
     setCutOff(15.5f, 17.5f);

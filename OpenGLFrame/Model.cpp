@@ -33,6 +33,7 @@ GLboolean Model::loadModel(const char* filename)
     const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate   //三角化
                                              | aiProcess_GenNormals    //创建法线
                                              | aiProcess_FixInfacingNormals //翻转朝内的法线
+                                             | aiProcess_CalcTangentSpace   //计算切线空间（法线贴图用）
                                              | aiProcess_JoinIdenticalVertices  //合并顶点
                                              //| aiProcess_PreTransformVertices   //坐标预变换（无动画）
                                              | aiProcess_GenUVCoords    //生成UV坐标
@@ -104,18 +105,14 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 transform)
         temp.y = mesh->mNormals[i].y;
         temp.z = mesh->mNormals[i].z;
         vertex.normal = temp;
-        //颜色
-//        if (mesh->mColors[0])
-//        {
-//            glm::vec4 color;
-//            color.r = mesh->mColors[0][i].r;
-//            color.g = mesh->mColors[0][i].g;
-//            color.b = mesh->mColors[0][i].b;
-//            color.a = mesh->mColors[0][i].a;
-//            vertex.color = color;
-//        }
-//        else
-//            vertex.color = glm::vec4(1.0);  //白色
+        temp.x = mesh->mTangents[i].x;
+        temp.y = mesh->mTangents[i].y;
+        temp.z = mesh->mTangents[i].z;
+        vertex.tangent = temp;
+        temp.x = mesh->mBitangents[i].x;
+        temp.y = mesh->mBitangents[i].y;
+        temp.z = mesh->mBitangents[i].z;
+        vertex.bitengent = temp;
         //只关心第一个纹理坐标
         if (mesh->mTextureCoords[0])
         {
@@ -150,57 +147,66 @@ Material Model::loadMaterial(aiMaterial* mat)
 {
     Material material;
     
-    loadMatTex(mat, material, Ambient);
-    loadMatTex(mat, material, Diffuse);
-    loadMatTex(mat, material, Specular);
+    loadMatTex(mat, material, aiTextureType_AMBIENT);
+    loadMatTex(mat, material, aiTextureType_DIFFUSE);
+    loadMatTex(mat, material, aiTextureType_SPECULAR);
+    loadMatTex(mat, material, aiTextureType_HEIGHT);
+    loadMatTex(mat, material, aiTextureType_OPACITY);
     
-    float shininess;
+    float shininess;//, bumpScale;
     mat->Get(AI_MATKEY_SHININESS, shininess);
     material.shininess = shininess;
+//    mat->Get(AI_MATKEY_BUMPSCALING, bumpScale);
+//    material.bumpScale = bumpScale;
     
     return material;
 }
 
-void Model::loadMatTex(aiMaterial* mat, Material& targetMat, TextureType matType)
+void Model::loadMatTex(aiMaterial* mat, Material& targetMat, aiTextureType matType)
 {
-    aiTextureType aiType;
     GLuint *matTex;
     glm::vec3 *matColor;
-    bool *texFlag;
+    GLboolean *texFlag;
     
     switch (matType)
     {
-        case Ambient:
-            aiType = aiTextureType_AMBIENT;
+        case aiTextureType_AMBIENT:
             matTex = &targetMat.ambientTex;
             matColor = &targetMat.ambientColor;
-            texFlag = &targetMat.textured.x;
+            texFlag = &targetMat.ambientTexed;
             break;
-        case Diffuse:
-            aiType = aiTextureType_DIFFUSE;
+        case aiTextureType_DIFFUSE:
             matTex = &targetMat.diffuseTex;
             matColor = &targetMat.diffuseColor;
-            texFlag = &targetMat.textured.y;
+            texFlag = &targetMat.diffuseTexed;
             break;
-        case Specular:
-            aiType = aiTextureType_SPECULAR;
+        case aiTextureType_SPECULAR:
             matTex = &targetMat.specularTex;
             matColor = &targetMat.specularColor;
-            texFlag = &targetMat.textured.z;
+            texFlag = &targetMat.specularTexed;
+            break;
+        case aiTextureType_HEIGHT:
+            matTex = &targetMat.bumpTex;
+            matColor = &targetMat.diffuseColor;
+            texFlag = &targetMat.bumpTexed;
+            break;
+        case aiTextureType_OPACITY:
+            matTex = &targetMat.alphaTex;
+            matColor = &targetMat.diffuseColor;
+            texFlag = &targetMat.alphaTexed;
             break;
         default:
-            aiType = aiTextureType_DIFFUSE;
             matTex = &targetMat.diffuseTex;
             matColor = &targetMat.diffuseColor;
-            texFlag = &targetMat.textured.y;
+            texFlag = &targetMat.diffuseTexed;
             break;
     }
 
-    int texCount = mat->GetTextureCount(aiType);  //纹理数量
+    int texCount = mat->GetTextureCount(matType);  //纹理数量
     if (texCount > 0)    //有纹理
     {
         aiString str;
-        mat->GetTexture(aiType, 0, &str);
+        mat->GetTexture(matType, 0, &str);
         string texPath = str.C_Str();
         //检查纹理是否已经读取过
         bool loadFlag = false;
@@ -223,20 +229,20 @@ void Model::loadMatTex(aiMaterial* mat, Material& targetMat, TextureType matType
             textureLoaded.push_back(texture);
             *matTex = texture.id;
         }
-        *texFlag = true;
+        *texFlag = GL_TRUE;
     }
     else    //无纹理，取颜色
     {
         aiColor3D color;
         switch (matType)
         {
-            case Ambient:
+            case aiTextureType_AMBIENT:
                 mat->Get(AI_MATKEY_COLOR_AMBIENT, color);
                 break;
-            case Diffuse:
+            case aiTextureType_DIFFUSE:
                 mat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
                 break;
-            case Specular:
+            case aiTextureType_SPECULAR:
                 mat->Get(AI_MATKEY_COLOR_SPECULAR, color);
                 break;
             default:
@@ -246,7 +252,7 @@ void Model::loadMatTex(aiMaterial* mat, Material& targetMat, TextureType matType
         matColor->r = color.r;
         matColor->g = color.g;
         matColor->b = color.b;
-        *texFlag = false;
+        *texFlag = GL_FALSE;
     }
 }
 

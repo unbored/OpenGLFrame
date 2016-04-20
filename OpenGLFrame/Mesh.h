@@ -23,6 +23,8 @@ struct Vertex
     glm::vec3 position;
     glm::vec3 normal;
     glm::vec2 texCoord;
+    glm::vec3 tangent;
+    glm::vec3 bitengent;
 //    glm::vec4 color;
 };
 
@@ -31,11 +33,18 @@ struct Material
     glm::vec3 ambientColor;
     glm::vec3 diffuseColor;
     glm::vec3 specularColor;
-    GLfloat shininess;
-    glm::bvec3 textured;
-    GLuint ambientTex;
-    GLuint diffuseTex;
-    GLuint specularTex;
+    GLfloat   shininess;
+    GLboolean ambientTexed;
+    GLboolean diffuseTexed;
+    GLboolean specularTexed;
+    GLboolean bumpTexed;
+    GLboolean alphaTexed;
+    GLuint    ambientTex;
+    GLuint    diffuseTex;
+    GLuint    specularTex;
+    GLuint    bumpTex;
+    GLfloat   bumpScale;
+    GLuint    alphaTex;
 };
 
 class Mesh

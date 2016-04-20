@@ -57,9 +57,12 @@ GLboolean Mesh::setupMesh()
     //纹理坐标
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, texCoord));
-    //颜色
-//    glEnableVertexAttribArray(3);
-//    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, color));
+    //切线坐标
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, tangent));
+    //副切线坐标
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, bitengent));
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -74,11 +77,14 @@ GLboolean Mesh::setupMesh()
 
 void Mesh::draw(GLuint program)
 {
-    //标注漫射、散射和反射是否有纹理
-    glUniform3i(glGetUniformLocation(program, "material.textured"),
-                material.textured.x, material.textured.y, material.textured.z);
+    //标注漫射、散射和反射等是否有纹理
+    glUniform1i(glGetUniformLocation(program, "material.ambientTexed"), material.ambientTexed);
+    glUniform1i(glGetUniformLocation(program, "material.diffuseTexed"), material.diffuseTexed);
+    glUniform1i(glGetUniformLocation(program, "material.specularTexed"), material.specularTexed);
+    glUniform1i(glGetUniformLocation(program, "material.bumpTexed"), material.bumpTexed);
+    glUniform1i(glGetUniformLocation(program, "material.alphaTexed"), material.alphaTexed);
     //漫射贴图
-    if (material.textured.x)
+    if (material.ambientTexed)
     {
         glActiveTexture(GL_TEXTURE0);
         glUniform1i(glGetUniformLocation(program, "material.ambientTex"), 0);
@@ -88,7 +94,7 @@ void Mesh::draw(GLuint program)
         glUniform3f(glGetUniformLocation(program, "material.ambientColor"),
                     material.ambientColor.r, material.ambientColor.g, material.ambientColor.b);
     //散射贴图
-    if (material.textured.y)
+    if (material.diffuseTexed)
     {
         glActiveTexture(GL_TEXTURE1);
         glUniform1i(glGetUniformLocation(program, "material.diffuseTex"), 1);
@@ -98,7 +104,7 @@ void Mesh::draw(GLuint program)
         glUniform3f(glGetUniformLocation(program, "material.diffuseColor"),
                     material.diffuseColor.r, material.diffuseColor.g, material.diffuseColor.b);
     //反射贴图
-    if (material.textured.z)
+    if (material.specularTexed)
     {
         glActiveTexture(GL_TEXTURE2);
         glUniform1i(glGetUniformLocation(program, "material.specularTex"), 2);
@@ -107,9 +113,25 @@ void Mesh::draw(GLuint program)
     else
         glUniform3f(glGetUniformLocation(program, "material.specularColor"),
                     material.specularColor.r, material.specularColor.g, material.specularColor.b);
+    //法线贴图
+    if (material.bumpTexed)
+    {
+        glActiveTexture(GL_TEXTURE3);
+        glUniform1i(glGetUniformLocation(program, "material.bumpTex"), 3);
+        glBindTexture(GL_TEXTURE_2D, material.bumpTex);
+    }
+    //透明贴图
+    if (material.alphaTexed)
+    {
+        glActiveTexture(GL_TEXTURE4);
+        glUniform1i(glGetUniformLocation(program, "material.alphaTex"), 4);
+        glBindTexture(GL_TEXTURE_2D, material.alphaTex);
+    }
     //高光大小
     glUniform1f(glGetUniformLocation(program, "material.shininess"), material.shininess);
-    
+    //法线贴图缩放
+//    glUniform1f(glGetUniformLocation(program, "material.bumpScale"), material.bumpScale);
+    //内部变换矩阵
     glUniformMatrix4fv(glGetUniformLocation(program, "mesh"), 1, GL_FALSE, glm::value_ptr(transform));
     //绘制
     glBindVertexArray(VAO);

@@ -239,17 +239,17 @@ int main(int argc, const char * argv[])
     FreeImage_Initialise();
     shaderInit();
     
-    testModel.loadModel("xiulong/xiulong.3ds");
+    testModel.loadModel("Models/alcohol/alcohol.obj");
     
     lightDirect.setLocation(glm::vec3(0.0, 5.0, 5.0));
     lightDirect.setDirection(glm::vec3(0.0, -5.0, -5.0));
-    lightDirect.setDiffuse(glm::vec3(0.8));
-    lightSpot.setDiffuse(glm::vec3(0.8));
+    lightSpot.setAmbient(glm::vec3(0.1));
     lightSpot.turnOnOff(false);
     
     testCamera.setAspect((GLfloat)resX / resY);
     testCamera.setPos(glm::vec3(0.0, 0.0, 10.0));
     
+    glClearColor(0.2, 0.2, 0.2, 1.0);
     std::cerr << "==========绘制开始============" << std::endl;
     
     while (!glfwWindowShouldClose(window))

@@ -23,8 +23,6 @@
 
 using namespace std;
 
-enum TextureType { Ambient, Diffuse, Specular };
-
 struct Texture
 {
     GLuint id;
@@ -52,6 +50,6 @@ private:
     void processNode(aiNode* node, const aiScene* scene, glm::mat4 transform);
     Mesh processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 transform);
     Material loadMaterial(aiMaterial* mat);
-    void loadMatTex(aiMaterial* mat, Material& targetMat, TextureType matType);
+    void loadMatTex(aiMaterial* mat, Material& targetMat, aiTextureType matType);
     GLuint textureFromFile(const char* filename);
 };
