@@ -21,11 +21,11 @@ uniform mat4 mesh;  //内部网格矩阵
 
 uniform vec3 viewPos;
 
-out vec3 fNormal;
 out vec2 fTexCoord;
 out mat3 TBN;
 out vec3 tanFragPos;
 out vec3 tanViewPos;
+out vec3 tanNormal;
 
 void main()
 {
@@ -37,10 +37,10 @@ void main()
     vec3 T = normalize(matNormal * vTengent);
     vec3 B = normalize(matNormal * vBitengent);
     
-    fNormal = N;
     fTexCoord = vTexCoord;
     TBN = transpose(mat3(T, B, N));
     tanFragPos = TBN * fragPos;
     tanViewPos = TBN * viewPos;
+    tanNormal = TBN * N;
 
 }

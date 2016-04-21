@@ -81,7 +81,8 @@ void Mesh::draw(GLuint program)
     glUniform1i(glGetUniformLocation(program, "material.ambientTexed"), material.ambientTexed);
     glUniform1i(glGetUniformLocation(program, "material.diffuseTexed"), material.diffuseTexed);
     glUniform1i(glGetUniformLocation(program, "material.specularTexed"), material.specularTexed);
-    glUniform1i(glGetUniformLocation(program, "material.bumpTexed"), material.bumpTexed);
+    glUniform1i(glGetUniformLocation(program, "material.heightTexed"), material.heightTexed);
+    glUniform1i(glGetUniformLocation(program, "material.normalTexed"), material.normalTexed);
     glUniform1i(glGetUniformLocation(program, "material.alphaTexed"), material.alphaTexed);
     //漫射贴图
     if (material.ambientTexed)
@@ -113,8 +114,8 @@ void Mesh::draw(GLuint program)
     else
         glUniform3f(glGetUniformLocation(program, "material.specularColor"),
                     material.specularColor.r, material.specularColor.g, material.specularColor.b);
-    //法线贴图
-    if (material.bumpTexed)
+    //凹凸贴图
+    if (material.heightTexed || material.normalTexed)
     {
         glActiveTexture(GL_TEXTURE3);
         glUniform1i(glGetUniformLocation(program, "material.bumpTex"), 3);

@@ -239,7 +239,7 @@ int main(int argc, const char * argv[])
     FreeImage_Initialise();
     shaderInit();
     
-    testModel.loadModel("Models/alcohol/alcohol.obj");
+    testModel.loadModel("Models/alcohol/alcohol.obj", true);
     
     lightDirect.setLocation(glm::vec3(0.0, 5.0, 5.0));
     lightDirect.setDirection(glm::vec3(0.0, -5.0, -5.0));

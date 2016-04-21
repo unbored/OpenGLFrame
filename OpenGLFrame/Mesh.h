@@ -37,7 +37,8 @@ struct Material
     GLboolean ambientTexed;
     GLboolean diffuseTexed;
     GLboolean specularTexed;
-    GLboolean bumpTexed;
+    GLboolean normalTexed;
+    GLboolean heightTexed;
     GLboolean alphaTexed;
     GLuint    ambientTex;
     GLuint    diffuseTex;

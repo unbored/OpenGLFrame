@@ -41,9 +41,10 @@ private:
     vector<Mesh> meshes;
     string directory;
     vector<Texture> textureLoaded;
+    bool isHeightTex;
     
 public:
-    GLboolean loadModel(const char* filename);
+    GLboolean loadModel(const char* filename, bool isHeightMap = false);
     void draw(GLuint program);
     
 private:

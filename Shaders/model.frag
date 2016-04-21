@@ -10,7 +10,8 @@ struct Material
     bool  ambientTexed;
     bool  diffuseTexed;
     bool  specularTexed;
-    bool  bumpTexed;
+    bool  heightTexed;
+    bool  normalTexed;
     bool  alphaTexed;
     sampler2D ambientTex;
     sampler2D diffuseTex;
@@ -36,11 +37,11 @@ struct Light
 };
 uniform Light lightDirect, lightSpot;
 
-in vec3 fNormal;
 in vec2 fTexCoord;
 in mat3 TBN;
 in vec3 tanFragPos;
 in vec3 tanViewPos;
+in vec3 tanNormal;
 
 out vec4 fragColor;
 
@@ -75,8 +76,15 @@ vec4 calcLight(Material mat, Light lit)
     else
         matSpecular = vec4(mat.specularColor, 1.0f);
     
-    if (mat.bumpTexed)  //有法线贴图
-        matBump = texture(mat.bumpTex, fTexCoord).xyz;
+    if (mat.normalTexed)  //有法线贴图
+        matBump = texture(mat.bumpTex, fTexCoord).xyz * 2 - vec3(1.0);
+    else if (mat.heightTexed)
+    {
+        float bumpCenter = texture(mat.bumpTex, fTexCoord).x;
+        float bumpRight = textureOffset(mat.bumpTex, fTexCoord, ivec2(1, 0)).x;
+        float bumpUp = textureOffset(mat.bumpTex, fTexCoord, ivec2(0, -1)).x;
+        matBump = vec3(bumpCenter - bumpRight, bumpCenter - bumpUp, 1.0);
+    }
     
     if (mat.alphaTexed)
         matAlpha = texture(mat.alphaTex, fTexCoord).r;
@@ -85,13 +93,10 @@ vec4 calcLight(Material mat, Light lit)
     vec4 ambient = matAmbient * vec4(lit.ambient, 1.0f);
     //散射颜色
     vec3 norm;
-    if (mat.bumpTexed)
-    {
-        vec3 matNorm = matBump * 2 - vec3(1.0);
-        norm = normalize(matNorm);
-    }
+    if (mat.heightTexed || mat.normalTexed)
+        norm = normalize(matBump);
     else
-        norm = normalize(TBN * fNormal);
+        norm = normalize(tanNormal);
     vec3 lightDir;
     if (lit.type == 0)
         lightDir = normalize(tanLightDir);
@@ -140,21 +145,22 @@ vec4 calcLight(Material mat, Light lit)
 }
 
 //忽略光照，只算散射
-//vec4 calcDiffuse(Material mat)
-//{
-//    vec4 matDiffuse;
-//    if (mat.diffuseTexed) //有散射贴图
-//        matDiffuse = texture(mat.diffuseTex, fTexCoord);
-//    else
-//        matDiffuse = vec4(mat.diffuseColor, 1.0f);
-//    
-//    return matDiffuse;
-//}
+vec4 calcDiffuse(Material mat)
+{
+    vec4 matDiffuse;
+    if (mat.diffuseTexed) //有散射贴图
+        matDiffuse = texture(mat.diffuseTex, fTexCoord);
+    else
+        matDiffuse = vec4(mat.diffuseColor, 1.0f);
+    
+    return matDiffuse;
+}
 
 void main()
 {
     vec4 final = calcLight(material, lightDirect);
     final += calcLight(material, lightSpot);
+//    vec4 final = calcDiffuse(material);
     
     fragColor = final;
 }

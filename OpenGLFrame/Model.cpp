@@ -24,7 +24,7 @@ Model::~Model()
 }
 
 //读取模型
-GLboolean Model::loadModel(const char* filename)
+GLboolean Model::loadModel(const char* filename, bool isHeightMap)
 {
     string path = filename;    //包含文件名的路径
     
@@ -54,6 +54,7 @@ GLboolean Model::loadModel(const char* filename)
     else
         directory = path.substr(0, found + 1); //纯路径
 
+    isHeightTex = isHeightMap;
     processNode(scene->mRootNode, scene, glm::mat4(1.0));   //处理节点
     
     return GL_TRUE;
@@ -151,6 +152,7 @@ Material Model::loadMaterial(aiMaterial* mat)
     loadMatTex(mat, material, aiTextureType_DIFFUSE);
     loadMatTex(mat, material, aiTextureType_SPECULAR);
     loadMatTex(mat, material, aiTextureType_HEIGHT);
+    loadMatTex(mat, material, aiTextureType_NORMALS);
     loadMatTex(mat, material, aiTextureType_OPACITY);
     
     float shininess;//, bumpScale;
@@ -158,6 +160,10 @@ Material Model::loadMaterial(aiMaterial* mat)
     material.shininess = shininess;
 //    mat->Get(AI_MATKEY_BUMPSCALING, bumpScale);
 //    material.bumpScale = bumpScale;
+    if (isHeightTex)    //高度贴图，强制用高度贴图算法
+        material.normalTexed = GL_FALSE;
+    else if (material.heightTexed)  //否则强制用法线贴图算法
+        material.normalTexed = GL_TRUE;
     
     return material;
 }
@@ -185,10 +191,15 @@ void Model::loadMatTex(aiMaterial* mat, Material& targetMat, aiTextureType matTy
             matColor = &targetMat.specularColor;
             texFlag = &targetMat.specularTexed;
             break;
+        case aiTextureType_NORMALS:
+            matTex = &targetMat.bumpTex;
+            matColor = &targetMat.diffuseColor;
+            texFlag = &targetMat.normalTexed;
+            break;
         case aiTextureType_HEIGHT:
             matTex = &targetMat.bumpTex;
             matColor = &targetMat.diffuseColor;
-            texFlag = &targetMat.bumpTexed;
+            texFlag = &targetMat.heightTexed;
             break;
         case aiTextureType_OPACITY:
             matTex = &targetMat.alphaTex;
