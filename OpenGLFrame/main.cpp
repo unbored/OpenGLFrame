@@ -40,6 +40,9 @@ Light lightDirect(Directional), lightSpot(Spot);
 
 /////////////////键盘//////////////////
 bool keys[1024];
+double lastX, lastY;
+bool firstMouse = true;
+bool mousePressed[10];
 
 ////////////////帧率//////////////////
 double lastFrame;
@@ -168,7 +171,18 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 {
-    testCamera.mouseCallback(xpos, ypos);
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+    
+    double xoffset = xpos - lastX;
+    double yoffset = lastY - ypos;
+    lastX = xpos;
+    lastY = ypos;
+    testCamera.doViewing(xoffset, yoffset);
 }
 
 ////////////各种初始化//////////////////////
@@ -239,17 +253,18 @@ int main(int argc, const char * argv[])
     FreeImage_Initialise();
     shaderInit();
     
-    testModel.loadModel("Models/alcohol/alcohol.obj", true);
+    testModel.loadModel("Models/wenren1/wenren.obj", true);
     
     lightDirect.setLocation(glm::vec3(0.0, 5.0, 5.0));
     lightDirect.setDirection(glm::vec3(0.0, -5.0, -5.0));
+    lightDirect.setAmbient(glm::vec3(0.3));
     lightSpot.setAmbient(glm::vec3(0.1));
     lightSpot.turnOnOff(false);
     
     testCamera.setAspect((GLfloat)resX / resY);
     testCamera.setPos(glm::vec3(0.0, 0.0, 10.0));
     
-    glClearColor(0.2, 0.2, 0.2, 1.0);
+    glClearColor(0.3, 0.3, 0.3, 1.0);
     std::cerr << "==========绘制开始============" << std::endl;
     
     while (!glfwWindowShouldClose(window))

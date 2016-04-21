@@ -1,4 +1,4 @@
-//
+﻿//
 //  Model.h
 //  OpenGLFrame
 //
@@ -40,6 +40,7 @@ public:
 private:
     vector<Mesh> meshes;
     string directory;
+	vector<Material> materialLoaded;
     vector<Texture> textureLoaded;
     bool isHeightTex;
     

@@ -1,4 +1,4 @@
-#include "Shader.h"
+﻿#include "Shader.h"
 
 Shader::Shader()
 {
@@ -14,8 +14,8 @@ Shader::~Shader()
 
 void Shader::checkGLErrors(const char* desc) {
     GLenum e;
-    while ((e = glGetError()) != GL_NO_ERROR)
-        std::cerr << "OpenGL错误" << e << "，位于" << desc << std::endl;
+	while ((e = glGetError()) != GL_NO_ERROR)
+		std::cerr << "OpenGL错误" << e << "，位于" << desc << std::endl;
 }
 
 GLuint Shader::createShader(GLenum type, const char* filename) //读入一个shader

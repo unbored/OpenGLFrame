@@ -1,4 +1,4 @@
-//
+﻿//
 //  Mesh.cpp
 //  OpenGLFrame
 //
@@ -62,7 +62,7 @@ GLboolean Mesh::setupMesh()
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, tangent));
     //副切线坐标
     glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, bitengent));
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, bitangent));
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -77,59 +77,99 @@ GLboolean Mesh::setupMesh()
 
 void Mesh::draw(GLuint program)
 {
-    //标注漫射、散射和反射等是否有纹理
-    glUniform1i(glGetUniformLocation(program, "material.ambientTexed"), material.ambientTexed);
-    glUniform1i(glGetUniformLocation(program, "material.diffuseTexed"), material.diffuseTexed);
-    glUniform1i(glGetUniformLocation(program, "material.specularTexed"), material.specularTexed);
-    glUniform1i(glGetUniformLocation(program, "material.heightTexed"), material.heightTexed);
-    glUniform1i(glGetUniformLocation(program, "material.normalTexed"), material.normalTexed);
-    glUniform1i(glGetUniformLocation(program, "material.alphaTexed"), material.alphaTexed);
-    //漫射贴图
-    if (material.ambientTexed)
-    {
-        glActiveTexture(GL_TEXTURE0);
-        glUniform1i(glGetUniformLocation(program, "material.ambientTex"), 0);
-        glBindTexture(GL_TEXTURE_2D, material.ambientTex);
-    }
-    else
-        glUniform3f(glGetUniformLocation(program, "material.ambientColor"),
-                    material.ambientColor.r, material.ambientColor.g, material.ambientColor.b);
-    //散射贴图
-    if (material.diffuseTexed)
-    {
-        glActiveTexture(GL_TEXTURE1);
-        glUniform1i(glGetUniformLocation(program, "material.diffuseTex"), 1);
-        glBindTexture(GL_TEXTURE_2D, material.diffuseTex);
-    }
-    else
-        glUniform3f(glGetUniformLocation(program, "material.diffuseColor"),
-                    material.diffuseColor.r, material.diffuseColor.g, material.diffuseColor.b);
-    //反射贴图
-    if (material.specularTexed)
-    {
-        glActiveTexture(GL_TEXTURE2);
-        glUniform1i(glGetUniformLocation(program, "material.specularTex"), 2);
-        glBindTexture(GL_TEXTURE_2D, material.specularTex);
-    }
-    else
-        glUniform3f(glGetUniformLocation(program, "material.specularColor"),
-                    material.specularColor.r, material.specularColor.g, material.specularColor.b);
-    //凹凸贴图
-    if (material.heightTexed || material.normalTexed)
-    {
-        glActiveTexture(GL_TEXTURE3);
-        glUniform1i(glGetUniformLocation(program, "material.bumpTex"), 3);
-        glBindTexture(GL_TEXTURE_2D, material.bumpTex);
-    }
-    //透明贴图
-    if (material.alphaTexed)
-    {
-        glActiveTexture(GL_TEXTURE4);
-        glUniform1i(glGetUniformLocation(program, "material.alphaTex"), 4);
-        glBindTexture(GL_TEXTURE_2D, material.alphaTex);
-    }
-    //高光大小
-    glUniform1f(glGetUniformLocation(program, "material.shininess"), material.shininess);
+	//绑定所有纹理
+	//漫射贴图
+	if (material.ambientTexed)
+	{
+		glActiveTexture(GL_TEXTURE0);
+		glUniform1i(glGetUniformLocation(program, "ambientTex"), 0);
+		glBindTexture(GL_TEXTURE_2D, material.ambientTex);
+	}
+	//散射贴图
+	if (material.diffuseTexed)
+	{
+		glActiveTexture(GL_TEXTURE1);
+		glUniform1i(glGetUniformLocation(program, "diffuseTex"), 1);
+		glBindTexture(GL_TEXTURE_2D, material.diffuseTex);
+	}
+	//反射贴图
+	if (material.specularTexed)
+	{
+		glActiveTexture(GL_TEXTURE2);
+		glUniform1i(glGetUniformLocation(program, "specularTex"), 2);
+		glBindTexture(GL_TEXTURE_2D, material.specularTex);
+	}
+	//凹凸贴图
+	if (material.heightTexed || material.normalTexed)
+	{
+		glActiveTexture(GL_TEXTURE3);
+		glUniform1i(glGetUniformLocation(program, "bumpTex"), 3);
+		glBindTexture(GL_TEXTURE_2D, material.bumpTex);
+	}
+	//透明贴图
+	if (material.alphaTexed)
+	{
+		glActiveTexture(GL_TEXTURE4);
+		glUniform1i(glGetUniformLocation(program, "alphaTex"), 4);
+		glBindTexture(GL_TEXTURE_2D, material.alphaTex);
+	}
+	//取得UBO位置
+	GLuint index = glGetUniformBlockIndex(program, "Material");
+	//glUniformBlockBinding(program, index, 0);	//0号位置
+	glBindBufferBase(GL_UNIFORM_BUFFER, index, material.UBO);
+    ////标注漫射、散射和反射等是否有纹理
+    //glUniform1i(glGetUniformLocation(program, "material.ambientTexed"), material.ambientTexed);
+    //glUniform1i(glGetUniformLocation(program, "material.diffuseTexed"), material.diffuseTexed);
+    //glUniform1i(glGetUniformLocation(program, "material.specularTexed"), material.specularTexed);
+    //glUniform1i(glGetUniformLocation(program, "material.heightTexed"), material.heightTexed);
+    //glUniform1i(glGetUniformLocation(program, "material.normalTexed"), material.normalTexed);
+    //glUniform1i(glGetUniformLocation(program, "material.alphaTexed"), material.alphaTexed);
+    ////漫射贴图
+    //if (material.ambientTexed)
+    //{
+    //    glActiveTexture(GL_TEXTURE0);
+    //    glUniform1i(glGetUniformLocation(program, "material.ambientTex"), 0);
+    //    glBindTexture(GL_TEXTURE_2D, material.ambientTex);
+    //}
+    //else
+    //    glUniform3f(glGetUniformLocation(program, "material.ambientColor"),
+    //                material.ambientColor.r, material.ambientColor.g, material.ambientColor.b);
+    ////散射贴图
+    //if (material.diffuseTexed)
+    //{
+    //    glActiveTexture(GL_TEXTURE1);
+    //    glUniform1i(glGetUniformLocation(program, "material.diffuseTex"), 1);
+    //    glBindTexture(GL_TEXTURE_2D, material.diffuseTex);
+    //}
+    //else
+    //    glUniform3f(glGetUniformLocation(program, "material.diffuseColor"),
+    //                material.diffuseColor.r, material.diffuseColor.g, material.diffuseColor.b);
+    ////反射贴图
+    //if (material.specularTexed)
+    //{
+    //    glActiveTexture(GL_TEXTURE2);
+    //    glUniform1i(glGetUniformLocation(program, "material.specularTex"), 2);
+    //    glBindTexture(GL_TEXTURE_2D, material.specularTex);
+    //}
+    //else
+    //    glUniform3f(glGetUniformLocation(program, "material.specularColor"),
+    //                material.specularColor.r, material.specularColor.g, material.specularColor.b);
+    ////凹凸贴图
+    //if (material.heightTexed || material.normalTexed)
+    //{
+    //    glActiveTexture(GL_TEXTURE3);
+    //    glUniform1i(glGetUniformLocation(program, "material.bumpTex"), 3);
+    //    glBindTexture(GL_TEXTURE_2D, material.bumpTex);
+    //}
+    ////透明贴图
+    //if (material.alphaTexed)
+    //{
+    //    glActiveTexture(GL_TEXTURE4);
+    //    glUniform1i(glGetUniformLocation(program, "material.alphaTex"), 4);
+    //    glBindTexture(GL_TEXTURE_2D, material.alphaTex);
+    //}
+    ////高光大小
+    //glUniform1f(glGetUniformLocation(program, "material.shininess"), material.shininess);
     //法线贴图缩放
 //    glUniform1f(glGetUniformLocation(program, "material.bumpScale"), material.bumpScale);
     //内部变换矩阵

@@ -1,4 +1,4 @@
-//
+﻿//
 //  Camera.hpp
 //  OpenGLFrame
 //
@@ -7,6 +7,7 @@
 //
 
 #pragma once
+#define GLM_FORCE_RADIANS
 #include <iostream>
 #include <ctime>
 #include "GL/glew.h"
@@ -30,9 +31,7 @@ private:
     GLfloat speed;
     GLfloat height;
     
-    GLfloat lastX, lastY;
     GLfloat yaw, pitch;
-    bool firstMouse;
     
     GLfloat fovy;
     GLfloat near;
@@ -41,7 +40,10 @@ private:
     
 public:
     void doMovement(bool up, bool down, bool left, bool right);
-    void mouseCallback(double xpos, double ypos);
+//	void doSafaring(double xoffset, double yoffset);
+	void doViewing(double xoffset, double yoffset);
+	void doZooming(GLfloat deltaDegree);
+	void mouseCallback(double xpos, double ypos, glm::bvec3 clicked = glm::bvec3(false));
     void calcFrame();
     void calcFrame(double delta) { deltaTime = delta; };
     glm::mat4 viewMatrix();

@@ -1,4 +1,4 @@
-//
+﻿//
 //  Model.cpp
 //  OpenGLFrame
 //
@@ -63,25 +63,20 @@ GLboolean Model::loadModel(const char* filename, bool isHeightMap)
 //处理节点的递归函数
 void Model::processNode(aiNode* node, const aiScene* scene, glm::mat4 transform)
 {
-//    glm::mat4 transmat(node->mTransformation.a1, node->mTransformation.a2, node->mTransformation.a3, node->mTransformation.a4,
-//                       node->mTransformation.b1, node->mTransformation.b2, node->mTransformation.b3, node->mTransformation.b4,
-//                       node->mTransformation.c1, node->mTransformation.c2, node->mTransformation.c3, node->mTransformation.c4,
-//                       node->mTransformation.d1, node->mTransformation.d2, node->mTransformation.d3, node->mTransformation.d4);
     glm::mat4 transmat(node->mTransformation.a1, node->mTransformation.b1, node->mTransformation.c1, node->mTransformation.d1,
                        node->mTransformation.a2, node->mTransformation.b2, node->mTransformation.c2, node->mTransformation.d2,
                        node->mTransformation.a3, node->mTransformation.b3, node->mTransformation.c3, node->mTransformation.d3,
                        node->mTransformation.a4, node->mTransformation.b4, node->mTransformation.c4, node->mTransformation.d4);
     
     transmat = transmat * transform;
-    //transmat = glm::translate(transform, glm::vec3(100.0, 0.0, 0.0));
 
     //当前节点
-    for (int i = 0; i < node->mNumMeshes; i++)
+    for (unsigned int i = 0; i < node->mNumMeshes; i++)
     {
         meshes.push_back(processMesh(scene->mMeshes[node->mMeshes[i]], scene, transmat));
     }
     //子节点
-    for (int i = 0; i < node->mNumChildren; i++)
+	for (unsigned int i = 0; i < node->mNumChildren; i++)
     {
         processNode(node->mChildren[i], scene, transmat);
     }
@@ -91,10 +86,9 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 transform)
 {
     vector<Vertex> vertices;
     vector<GLuint> indices;
-    Material mat;
 
     //处理顶点
-    for (int i = 0; i < mesh->mNumVertices; i++)
+	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
     {
         Vertex vertex;
         glm::vec3 temp;
@@ -106,14 +100,6 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 transform)
         temp.y = mesh->mNormals[i].y;
         temp.z = mesh->mNormals[i].z;
         vertex.normal = temp;
-        temp.x = mesh->mTangents[i].x;
-        temp.y = mesh->mTangents[i].y;
-        temp.z = mesh->mTangents[i].z;
-        vertex.tangent = temp;
-        temp.x = mesh->mBitangents[i].x;
-        temp.y = mesh->mBitangents[i].y;
-        temp.z = mesh->mBitangents[i].z;
-        vertex.bitengent = temp;
         //只关心第一个纹理坐标
         if (mesh->mTextureCoords[0])
         {
@@ -121,25 +107,54 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 transform)
             textemp.x = mesh->mTextureCoords[0][i].x;
             textemp.y = mesh->mTextureCoords[0][i].y;
             vertex.texCoord = textemp;
+			//有纹理坐标才能算切线
+			temp.x = mesh->mTangents[i].x;
+			temp.y = mesh->mTangents[i].y;
+			temp.z = mesh->mTangents[i].z;
+			vertex.tangent = temp;
+			temp.x = mesh->mBitangents[i].x;
+			temp.y = mesh->mBitangents[i].y;
+			temp.z = mesh->mBitangents[i].z;
+			vertex.bitangent = temp;
         }
-        else
-            vertex.texCoord = glm::vec2(0.0);
+		else
+		{
+			vertex.texCoord = glm::vec2(0.0);
+			vertex.tangent = glm::vec3(1.0, 0.0, 0.0);
+			vertex.bitangent = glm::vec3(0.0, 1.0, 0.0);
+		}
         
         vertices.push_back(vertex);
     }
     
     //索引
-    for (int i = 0; i < mesh->mNumFaces; i++)
+	for (unsigned int i = 0; i < mesh->mNumFaces; i++)
     {
         aiFace face = mesh->mFaces[i];
-        for (int j = 0; j < face.mNumIndices; j++)
+		for (unsigned int j = 0; j < face.mNumIndices; j++)
             indices.push_back(face.mIndices[j]);
     }
     
-    //纹理
-    aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-    
-    mat = loadMaterial(material);
+    //材质
+	Material mat;
+	bool loadFlag = false;
+	for (unsigned int i = 0; i < materialLoaded.size(); i++)
+	{
+		if (mesh->mMaterialIndex == materialLoaded[i].id)	//材质已经读取过
+		{
+			mat = materialLoaded[i];
+			loadFlag = true;
+			break;
+		}
+	}
+	if (!loadFlag)	//材质没有读取过
+	{
+		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+		mat = loadMaterial(material);
+		mat.id = mesh->mMaterialIndex;
+		//mat.blockBinding = materialLoaded.size();
+		materialLoaded.push_back(mat);
+	}
     
     return Mesh(vertices, indices, mat, transform);
 }
@@ -164,15 +179,24 @@ Material Model::loadMaterial(aiMaterial* mat)
         material.normalTexed = GL_FALSE;
     else if (material.heightTexed)  //否则强制用法线贴图算法
         material.normalTexed = GL_TRUE;
-    
-    return material;
+
+	//新建一个UBO
+	GLuint UBO;
+	glGenBuffers(1, &UBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+	//缓冲区尺寸：vec4 * 3 + float * 1 + uint * 6，
+	glBufferData(GL_UNIFORM_BUFFER, 80, NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, offsetof(Material,id), &material);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	material.UBO = UBO;
+	return material;
 }
 
 void Model::loadMatTex(aiMaterial* mat, Material& targetMat, aiTextureType matType)
 {
     GLuint *matTex;
-    glm::vec3 *matColor;
-    GLboolean *texFlag;
+    glm::vec4 *matColor;
+    GLuint *texFlag;
     
     switch (matType)
     {
@@ -221,7 +245,7 @@ void Model::loadMatTex(aiMaterial* mat, Material& targetMat, aiTextureType matTy
         string texPath = str.C_Str();
         //检查纹理是否已经读取过
         bool loadFlag = false;
-        for (int j = 0; j < textureLoaded.size(); j++)
+		for (unsigned int j = 0; j < textureLoaded.size(); j++)
         {
             if (texPath == textureLoaded[j].path)
             {
@@ -263,6 +287,7 @@ void Model::loadMatTex(aiMaterial* mat, Material& targetMat, aiTextureType matTy
         matColor->r = color.r;
         matColor->g = color.g;
         matColor->b = color.b;
+		matColor->a = 1.0f;
         *texFlag = GL_FALSE;
     }
 }
@@ -283,12 +308,10 @@ GLuint Model::textureFromFile(const char* filename)
     unsigned int height = FreeImage_GetHeight(bmp);
     
     GLuint tex;
-    float borderColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
     glGenTextures(1, &tex);
     glBindTexture(GL_TEXTURE_2D, tex);
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, bits);
@@ -301,6 +324,6 @@ GLuint Model::textureFromFile(const char* filename)
 
 void Model::draw(GLuint program)
 {
-    for (int i = 0; i < meshes.size(); i++)
+	for (unsigned int i = 0; i < meshes.size(); i++)
         meshes[i].draw(program);
 }

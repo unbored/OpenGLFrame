@@ -1,4 +1,4 @@
-//
+﻿//
 //  Camera.cpp
 //  OpenGLFrame
 //
@@ -19,11 +19,8 @@ Camera::Camera()
     up    = glm::vec3(0.0f, 1.0f,  0.0f);
     speed = 5.0f;
     
-    yaw   = -90;  //注意朝向z负轴
-    pitch = 0;
-    lastX = 0;
-    lastY = 0;
-    firstMouse = true;
+    yaw   = -90.0f;  //注意朝向z负轴
+    pitch = 0.0f;
     
     fovy = 45.0f;
     near = 0.1f;
@@ -53,6 +50,45 @@ void Camera::doMovement(bool upPressed, bool downPressed, bool leftPressed, bool
         pos += glm::normalize(glm::cross(tempFront, up)) * cameraSpeed;
 }
 
+//void Camera::doSafaring(double xoffset, double yoffset)
+//{
+//	// 摄像机控制
+//
+//	pos -= (1.0f / 300) * up * (GLfloat)yoffset;
+//
+//	pos -= glm::normalize(glm::cross(front, up)) * (1.0f / 400) * (GLfloat)xoffset;
+//}
+
+void Camera::doViewing(double xoffset, double yoffset)
+{
+	GLfloat sensitivity = 0.05;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	yaw += xoffset;
+	pitch += yoffset;
+
+	if (pitch > 89.0f)
+		pitch = 89.0f;
+	if (pitch < -89.0f)
+		pitch = -89.0f;
+
+	glm::vec3 cameraFront;
+	cameraFront.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	cameraFront.y = sin(glm::radians(pitch));
+	cameraFront.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	front = glm::normalize(cameraFront);
+}
+
+void Camera::doZooming(GLfloat deltaDegree)
+{
+	fovy += deltaDegree;
+	if (fovy > 179.0f)
+		fovy = 179.0f;
+	if (fovy < 1.0f)
+		fovy = 1.0f;
+}
+
 glm::mat4 Camera::viewMatrix()
 {
     return glm::lookAt(pos, pos + front, up);
@@ -60,41 +96,7 @@ glm::mat4 Camera::viewMatrix()
 
 glm::mat4 Camera::projMatrix()
 {
-    return glm::perspective(fovy, aspect, near, far);
-}
-
-
-void Camera::mouseCallback(double xpos, double ypos)
-{
-    if(firstMouse)
-    {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
-    
-    GLfloat xoffset = xpos - lastX;
-    GLfloat yoffset = lastY - ypos;
-    lastX = xpos;
-    lastY = ypos;
-    
-    GLfloat sensitivity = 0.05;
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
-    
-    yaw   += xoffset;
-    pitch += yoffset;
-    
-    if(pitch > 89.0f)
-        pitch = 89.0f;
-    if(pitch < -89.0f)
-        pitch = -89.0f;
-    
-    glm::vec3 cameraFront;
-    cameraFront.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    cameraFront.y = sin(glm::radians(pitch));
-    cameraFront.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    front = glm::normalize(cameraFront);
+    return glm::perspective(glm::radians(fovy), aspect, near, far);
 }
 
 void Camera::calcFrame()

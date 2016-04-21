@@ -11,8 +11,8 @@
 layout (location = 0) in vec3 vPosition;
 layout (location = 1) in vec3 vNormal;
 layout (location = 2) in vec2 vTexCoord;
-layout (location = 3) in vec3 vTengent;
-layout (location = 4) in vec3 vBitengent;
+layout (location = 3) in vec3 vTangent;
+layout (location = 4) in vec3 vBitangent;
 
 uniform mat4 model; //模型矩阵
 uniform mat4 view;  //视图矩阵
@@ -34,8 +34,8 @@ void main()
     
     mat3 matNormal = mat3(transpose(inverse(model * mesh)));    //法线矩阵
     vec3 N = normalize(matNormal * vNormal);    //法线变换，确保非等比例缩放正常
-    vec3 T = normalize(matNormal * vTengent);
-    vec3 B = normalize(matNormal * vBitengent);
+    vec3 T = normalize(matNormal * vTangent);
+    vec3 B = normalize(matNormal * vBitangent);
     
     fTexCoord = vTexCoord;
     TBN = transpose(mat3(T, B, N));

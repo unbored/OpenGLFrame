@@ -1,26 +1,26 @@
 #version 330 core
 
 //材质
-struct Material
+layout(std140) uniform Material
 {
-    vec3  ambientColor;
-    vec3  diffuseColor;
-    vec3  specularColor;
+    vec4  ambientColor;
+    vec4  diffuseColor;
+    vec4  specularColor;
     float shininess;
     bool  ambientTexed;
     bool  diffuseTexed;
     bool  specularTexed;
-    bool  heightTexed;
     bool  normalTexed;
+    bool  heightTexed;
     bool  alphaTexed;
-    sampler2D ambientTex;
-    sampler2D diffuseTex;
-    sampler2D specularTex;
-    sampler2D bumpTex;
-    float bumpScale;
-    sampler2D alphaTex;
-};
-uniform Material material;
+//    float bumpScale;
+} material;
+
+uniform sampler2D ambientTex;
+uniform sampler2D diffuseTex;
+uniform sampler2D specularTex;
+uniform sampler2D bumpTex;
+uniform sampler2D alphaTex;
 
 //光照
 struct Light
@@ -46,7 +46,7 @@ in vec3 tanNormal;
 out vec4 fragColor;
 
 //计算光照
-vec4 calcLight(Material mat, Light lit)
+vec4 calcLight(Light lit)
 {
     //关灯
     if (!lit.enabled)
@@ -59,41 +59,42 @@ vec4 calcLight(Material mat, Light lit)
     vec3 matBump;
     float matAlpha;
     
-    if (mat.ambientTexed) //有漫射贴图
-        matAmbient = texture(mat.ambientTex, fTexCoord);
-    else if (mat.diffuseTexed)    //无漫射但有散射贴图
-        matAmbient = texture(mat.diffuseTex, fTexCoord);
+    if (material.ambientTexed) //有漫射贴图
+        matAmbient = texture(ambientTex, fTexCoord);
+    else if (material.diffuseTexed)    //无漫射但有散射贴图
+        matAmbient = texture(diffuseTex, fTexCoord);
     else    //无漫射贴图
-        matAmbient = vec4(mat.ambientColor, 1.0f);
+        matAmbient = material.ambientColor;
     
-    if (mat.diffuseTexed) //有散射贴图
-        matDiffuse = texture(mat.diffuseTex, fTexCoord);
+    if (material.diffuseTexed) //有散射贴图
+        matDiffuse = texture(diffuseTex, fTexCoord);
     else
-        matDiffuse = vec4(mat.diffuseColor, 1.0f);
+        matDiffuse = material.diffuseColor;
     
-    if (mat.specularTexed) //有高光贴图
-        matSpecular = texture(mat.specularTex, fTexCoord);
+    if (material.specularTexed) //有高光贴图
+        matSpecular = texture(specularTex, fTexCoord);
     else
-        matSpecular = vec4(mat.specularColor, 1.0f);
+        matSpecular = material.specularColor;
     
-    if (mat.normalTexed)  //有法线贴图
-        matBump = texture(mat.bumpTex, fTexCoord).xyz * 2 - vec3(1.0);
-    else if (mat.heightTexed)
+    if (material.normalTexed)  //有法线贴图
+        matBump = texture(bumpTex, fTexCoord).xyz * 2 - vec3(1.0);
+    else if (material.heightTexed)
     {
-        float bumpCenter = texture(mat.bumpTex, fTexCoord).x;
-        float bumpRight = textureOffset(mat.bumpTex, fTexCoord, ivec2(1, 0)).x;
-        float bumpUp = textureOffset(mat.bumpTex, fTexCoord, ivec2(0, -1)).x;
+        float bumpCenter = texture(bumpTex, fTexCoord).x;
+        float bumpRight = textureOffset(bumpTex, fTexCoord, ivec2(1, 0)).x;
+        float bumpUp = textureOffset(bumpTex, fTexCoord, ivec2(0, -1)).x;
         matBump = vec3(bumpCenter - bumpRight, bumpCenter - bumpUp, 1.0);
     }
     
-    if (mat.alphaTexed)
-        matAlpha = texture(mat.alphaTex, fTexCoord).r;
+    if (material.alphaTexed)
+        matAlpha = texture(alphaTex, fTexCoord).r;
     
+    //=============================================
     //漫反射颜色
     vec4 ambient = matAmbient * vec4(lit.ambient, 1.0f);
     //散射颜色
     vec3 norm;
-    if (mat.heightTexed || mat.normalTexed)
+    if (material.heightTexed || material.normalTexed)
         norm = normalize(matBump);
     else
         norm = normalize(tanNormal);
@@ -110,8 +111,8 @@ vec4 calcLight(Material mat, Light lit)
     vec3 halfwayDir = normalize(lightDir + viewDir);
     //vec3 reflectDir = reflect(-lightDir, norm);
     float spec;
-    if (mat.shininess > 0)  //假定镜面系数=0时无反射（规避一些问题）
-        spec = pow(max(dot(norm, halfwayDir), 0.0), mat.shininess);
+    if (material.shininess > 0)  //假定镜面系数=0时无反射（规避一些问题）
+        spec = pow(max(dot(norm, halfwayDir), 0.0), material.shininess);
     else
         spec = 0;
     vec4 specular = spec * matSpecular * vec4(lit.specular, 1.0f);
@@ -138,29 +139,31 @@ vec4 calcLight(Material mat, Light lit)
         cutoff = 1.0;
     //透明度
     vec4 alpha = vec4(1.0);
-    if (mat.alphaTexed)
+    if (material.alphaTexed)
         alpha.a = matAlpha;
     
-    return (ambient + (diffuse + specular) * cutoff) * attenuate * alpha;
+    vec4 final = (ambient + (diffuse + specular) * cutoff) * attenuate;
+    //透明度只从散射贴图与透明贴图取
+    return vec4(final.rgb, matDiffuse.a) * alpha;
 }
 
 //忽略光照，只算散射
-vec4 calcDiffuse(Material mat)
+vec4 calcDiffuse()
 {
     vec4 matDiffuse;
-    if (mat.diffuseTexed) //有散射贴图
-        matDiffuse = texture(mat.diffuseTex, fTexCoord);
+    if (material.diffuseTexed) //有散射贴图
+        matDiffuse = texture(diffuseTex, fTexCoord);
     else
-        matDiffuse = vec4(mat.diffuseColor, 1.0f);
+        matDiffuse = material.diffuseColor;
     
     return matDiffuse;
 }
 
 void main()
 {
-    vec4 final = calcLight(material, lightDirect);
-    final += calcLight(material, lightSpot);
-//    vec4 final = calcDiffuse(material);
+    vec4 final = calcLight(lightDirect);
+    final += calcLight(lightSpot);
+//    vec4 final = calcDiffuse();
     
     fragColor = final;
 }
