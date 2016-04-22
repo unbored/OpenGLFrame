@@ -40,7 +40,6 @@ private:
     
 public:
     void doMovement(bool up, bool down, bool left, bool right);
-//	void doSafaring(double xoffset, double yoffset);
 	void doViewing(double xoffset, double yoffset);
 	void doZooming(GLfloat deltaDegree);
 	void mouseCallback(double xpos, double ypos, glm::bvec3 clicked = glm::bvec3(false));

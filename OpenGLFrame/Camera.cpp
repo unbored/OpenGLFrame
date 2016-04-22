@@ -50,15 +50,6 @@ void Camera::doMovement(bool upPressed, bool downPressed, bool leftPressed, bool
         pos += glm::normalize(glm::cross(tempFront, up)) * cameraSpeed;
 }
 
-//void Camera::doSafaring(double xoffset, double yoffset)
-//{
-//	// 摄像机控制
-//
-//	pos -= (1.0f / 300) * up * (GLfloat)yoffset;
-//
-//	pos -= glm::normalize(glm::cross(front, up)) * (1.0f / 400) * (GLfloat)xoffset;
-//}
-
 void Camera::doViewing(double xoffset, double yoffset)
 {
 	GLfloat sensitivity = 0.05;

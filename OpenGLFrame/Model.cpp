@@ -29,7 +29,6 @@ GLboolean Model::loadModel(const char* filename, bool isHeightMap)
     string path = filename;    //包含文件名的路径
     
     Assimp::Importer importer;
-    //importer.SetPropertyInteger(AI_CONFIG_PP_RVC_FLAGS, aiComponent_NORMALS);
     const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate   //三角化
                                              | aiProcess_GenNormals    //创建法线
                                              | aiProcess_FixInfacingNormals //翻转朝内的法线
@@ -152,7 +151,6 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 transform)
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 		mat = loadMaterial(material);
 		mat.id = mesh->mMaterialIndex;
-		//mat.blockBinding = materialLoaded.size();
 		materialLoaded.push_back(mat);
 	}
     
@@ -173,8 +171,7 @@ Material Model::loadMaterial(aiMaterial* mat)
     float shininess;//, bumpScale;
     mat->Get(AI_MATKEY_SHININESS, shininess);
     material.shininess = shininess;
-//    mat->Get(AI_MATKEY_BUMPSCALING, bumpScale);
-//    material.bumpScale = bumpScale;
+    
     if (isHeightTex)    //高度贴图，强制用高度贴图算法
         material.normalTexed = GL_FALSE;
     else if (material.heightTexed)  //否则强制用法线贴图算法
@@ -313,11 +310,11 @@ GLuint Model::textureFromFile(const char* filename)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, bits);
-    //glGenerateMipmap(GL_TEXTURE_2D);
+    glGenerateMipmap(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, 0);
-    //SOIL_free_image_data(data);
+
     FreeImage_Unload(bmp);
     return tex;
 }

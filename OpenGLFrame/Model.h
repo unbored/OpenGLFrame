@@ -26,7 +26,6 @@ using namespace std;
 struct Texture
 {
     GLuint id;
-//    TextureType type;
     string path;
 };
 

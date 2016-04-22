@@ -25,7 +25,6 @@ struct Vertex
     glm::vec2 texCoord;
     glm::vec3 tangent;
     glm::vec3 bitangent;
-//    glm::vec4 color;
 };
 
 struct Material
@@ -40,7 +39,6 @@ struct Material
 	GLuint	  normalTexed;
 	GLuint	  heightTexed;
 	GLuint	  alphaTexed;
-    //GLfloat   bumpScale;
 	//以下用于记录，不传进shader
 	unsigned int id;
 	GLuint UBO;
