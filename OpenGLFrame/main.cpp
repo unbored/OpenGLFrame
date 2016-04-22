@@ -73,21 +73,22 @@ void glDisplay()
     glm::mat4 model;
     model = glm::scale(model, glm::vec3(0.1));
     
+    glm::vec3 cameraPos = testCamera.position();
+    lightSpot.setLocation(cameraPos);
+    lightSpot.setDirection(testCamera.getFront());
     //=======绘制模型============
     modelShader.use();
+    
     modelShader.setUniform("view", 1, GL_FALSE, &view);
     modelShader.setUniform("projection", 1, GL_FALSE, &projection);
     modelShader.setUniform("model", 1, GL_FALSE, &model);
     
     //传入相机位置
-    glm::vec3 cameraPos = testCamera.position();
     modelShader.setUniform("viewPos", cameraPos);
 
     //平行光
     lightDirect.setUniform(modelShader.getProgram(), "lightDirect");
     //聚光灯方位与相机一致
-    lightSpot.setLocation(cameraPos);
-    lightSpot.setDirection(testCamera.getFront());
     lightSpot.setUniform(modelShader.getProgram(), "lightSpot");
 
     testModel.draw(modelShader.getProgram());
@@ -130,8 +131,8 @@ GLuint loadTextureFromFile(const char* filename)
     BYTE* bits = FreeImage_GetBits(bmp);
     unsigned int width = FreeImage_GetWidth(bmp);
     unsigned int height = FreeImage_GetHeight(bmp);
-    
-    GLuint tex;
+
+    GLuint tex = 0;
     float borderColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
     glGenTextures(1, &tex);
     glBindTexture(GL_TEXTURE_2D, tex);

@@ -142,6 +142,7 @@ vec4 calcLight(Light lit)
     if (material.alphaTexed)
         alpha.a = matAlpha;
     
+//    float nsize = matBump.z;
     vec4 final = (ambient + (diffuse + specular) * cutoff) * attenuate;
     //透明度只从散射贴图与透明贴图取
     return vec4(final.rgb, matDiffuse.a) * alpha;
