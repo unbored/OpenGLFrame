@@ -8,6 +8,8 @@
 
 #pragma once
 
+#define MAX_BONES 100
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -16,7 +18,42 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
-using namespace std;
+struct Node
+{
+    std::string name;
+    std::vector<unsigned int> meshIndices;
+    glm::mat4 transform;
+    std::vector<Node> childs;
+};
+
+struct TransKey
+{
+    double time;
+    glm::mat4 transMat;
+};
+
+struct NodeAnim
+{
+    std::string name;
+    std::vector<TransKey> position;
+    std::vector<TransKey> rotate;
+    std::vector<TransKey> scale;
+};
+
+struct Bone
+{
+    std::string name;
+    glm::mat4 nodeMat;
+    glm::mat4 offsetMat;
+    NodeAnim anim;
+};
+
+//struct BoneWeight
+//{
+//	GLuint boneIndex;
+//	GLfloat weight;
+//	BoneWeight() { boneIndex = 0; weight = 0; };
+//};
 
 struct Vertex
 {
@@ -25,6 +62,9 @@ struct Vertex
     glm::vec2 texCoord;
     glm::vec3 tangent;
     glm::vec3 bitangent;
+	//记录所关联的所有骨骼和权重
+	glm::ivec4 boneIndices;
+	glm::vec4 weights;
 };
 
 struct Material
@@ -36,9 +76,10 @@ struct Material
     GLuint	  ambientTexed;
 	GLuint	  diffuseTexed;
 	GLuint	  specularTexed;
-	GLuint	  normalTexed;
 	GLuint	  heightTexed;
+	GLuint	  normalTexed;
 	GLuint	  alphaTexed;
+    //GLfloat   bumpScale;
 	//以下用于记录，不传进shader
 	unsigned int id;
 	GLuint UBO;
@@ -53,19 +94,36 @@ class Mesh
 {
 public:
     Mesh();
-    Mesh(vector<Vertex> vertices, vector<GLuint> indices, Material material, glm::mat4 transform);
+	Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Bone> bones, unsigned int matIndex);
     ~Mesh();
     
 private:
     GLuint VAO, VBO, EBO;
-    vector<Vertex> vertices;
-    vector<GLuint> indices;
+	std::vector<Vertex> vertices;
+	std::vector<GLuint> indices;
+	std::vector<Bone> bones;
+    static size_t MaxBones;
     Material material;
-    glm::mat4 transform;
-    
+    glm::mat4 offsetMat;
+	GLuint matID;
+    GLuint boneUBO;
+  
 public:
-    void setupVertices(vector<Vertex> vertices, vector<GLuint> indices, Material material);
-    void setTransform(glm::mat4 transform) { this->transform = transform; };
+	//void setupVertices(std::vector<Vertex> vertices, std::vector<GLuint> indices);
+	//指定材质
+	void setMaterial(Material material) { this->material = material; };
+	//获取材质ID
+	GLuint getMatID() { return matID; };
+    //读取节点矩阵
+    void getNodeMatrix(Node &node, glm::mat4 parentMat);
+    //读取动画矩阵
+    void getAnimMatrix(std::vector<NodeAnim> &channel);
+    //更新动画矩阵
+    void updateAnimMatrix(double tick);
+    //创建GL资源
     GLboolean setupMesh();
+	//销毁GL资源
+	void destroy();
+	//绘制
     void draw(GLuint program);
 };

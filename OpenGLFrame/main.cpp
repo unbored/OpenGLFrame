@@ -46,6 +46,7 @@ bool mousePressed[10];
 
 ////////////////帧率//////////////////
 double lastFrame;
+double currentFrame = 0;
 
 /////////////程序开始///////////////////////
 
@@ -71,7 +72,7 @@ void glDisplay()
     glm::mat4 projection;
     projection = testCamera.projMatrix();
     glm::mat4 model;
-    model = glm::scale(model, glm::vec3(0.1));
+    model = glm::scale(model, glm::vec3(1.0));
     
     glm::vec3 cameraPos = testCamera.position();
     lightSpot.setLocation(cameraPos);
@@ -81,7 +82,7 @@ void glDisplay()
     
     modelShader.setUniform("view", 1, GL_FALSE, &view);
     modelShader.setUniform("projection", 1, GL_FALSE, &projection);
-    modelShader.setUniform("model", 1, GL_FALSE, &model);
+//    modelShader.setUniform("model", 1, GL_FALSE, &model);
     
     //传入相机位置
     modelShader.setUniform("viewPos", cameraPos);
@@ -91,7 +92,7 @@ void glDisplay()
     //聚光灯方位与相机一致
     lightSpot.setUniform(modelShader.getProgram(), "lightSpot");
 
-    testModel.draw(modelShader.getProgram());
+    testModel.draw(modelShader.getProgram(), model, currentFrame);
     
     glCheckError("model");
 }
@@ -233,7 +234,7 @@ void glfwInitialize()
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouseCallback);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
+//    glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
     glCheckError("glInit");
@@ -254,16 +255,20 @@ int main(int argc, const char * argv[])
     FreeImage_Initialise();
     shaderInit();
     
-    testModel.loadModel("Models/wenren1/wenren.obj", true);
+    testModel.loadModel("Models/tractor/tractor.obj");
+    testModel.process();
     
     lightDirect.setLocation(glm::vec3(0.0, 5.0, 5.0));
     lightDirect.setDirection(glm::vec3(0.0, -5.0, -5.0));
     lightDirect.setAmbient(glm::vec3(0.3));
+    lightDirect.setDiffuse(glm::vec3(0.5));
     lightSpot.setAmbient(glm::vec3(0.1));
+    lightSpot.setLightDistance(1000.0f);
     lightSpot.turnOnOff(false);
     
     testCamera.setAspect((GLfloat)resX / resY);
-    testCamera.setPos(glm::vec3(0.0, 0.0, 10.0));
+    testCamera.setPos(glm::vec3(0.0, 130.0, 250.0));
+    testCamera.setRange(1.0f, 1000.0f);
     
     glClearColor(0.3, 0.3, 0.3, 1.0);
     std::cerr << "==========绘制开始============" << std::endl;
@@ -274,9 +279,11 @@ int main(int argc, const char * argv[])
         glDisplay();
         glfwSwapBuffers(window);
         glfwPollEvents();
+        //计算时间
         double newFrame = glfwGetTime();
-        testCamera.calcFrame(newFrame - lastFrame);
+        currentFrame = newFrame - lastFrame;
         lastFrame = newFrame;
+        testCamera.calcFrame(currentFrame);
         testCamera.doMovement(keys[GLFW_KEY_W],
                               keys[GLFW_KEY_S],
                               keys[GLFW_KEY_A],

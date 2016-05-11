@@ -17,7 +17,7 @@ Camera::Camera()
     pos   = glm::vec3(0.0f, height,  3.0f);
     front = glm::vec3(0.0f, 0.0f, -1.0f);
     up    = glm::vec3(0.0f, 1.0f,  0.0f);
-    speed = 5.0f;
+    speed = 500.0f;
     
     yaw   = -90.0f;  //注意朝向z负轴
     pitch = 0.0f;
@@ -36,8 +36,8 @@ void Camera::doMovement(bool upPressed, bool downPressed, bool leftPressed, bool
 {
     // 摄像机控制
     glm::vec3 tempFront;
-    tempFront = front;   //自由运动
-    //tempFront = glm::normalize(glm::vec3(front.x, height, front.z));   //FPS运动
+//    tempFront = front;   //自由运动
+    tempFront = glm::normalize(glm::vec3(front.x, height, front.z));   //FPS运动
     GLfloat cameraSpeed = speed * deltaTime;
 //    std::cout << cameraSpeed << std::endl;
     if(upPressed)

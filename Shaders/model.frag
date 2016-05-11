@@ -10,8 +10,8 @@ layout(std140) uniform Material
     bool  ambientTexed;
     bool  diffuseTexed;
     bool  specularTexed;
-    bool  normalTexed;
     bool  heightTexed;
+    bool  normalTexed;
     bool  alphaTexed;
 //    float bumpScale;
 } material;
@@ -45,6 +45,10 @@ in vec3 tanNormal;
 
 out vec4 fragColor;
 
+
+const vec2 constantList = vec2(1.0, 0.0);   //用于实现快速的MAD运算
+const vec4 allInOnes = vec4(1.0);
+
 //计算光照
 vec4 calcLight(Light lit)
 {
@@ -77,21 +81,21 @@ vec4 calcLight(Light lit)
         matSpecular = material.specularColor;
     
     if (material.normalTexed)  //有法线贴图
-        matBump = texture(bumpTex, fTexCoord).xyz * 2 - vec3(1.0);
-    else if (material.heightTexed)
+        matBump = texture(bumpTex, fTexCoord).xyz * 2.0 - 1.0;
+    else if (material.heightTexed)  //高度贴图，计算法线
     {
-        float bumpCenter = texture(bumpTex, fTexCoord).x;
+        vec3 bumpCenter = texture(bumpTex, fTexCoord).xyz;
         float bumpRight = textureOffset(bumpTex, fTexCoord, ivec2(1, 0)).x;
         float bumpUp = textureOffset(bumpTex, fTexCoord, ivec2(0, -1)).x;
-        matBump = vec3(bumpCenter - bumpRight, bumpCenter - bumpUp, 1.0);
+        matBump = bumpCenter.xxx * constantList.xxy - vec3(bumpRight, bumpUp, -1.0);
     }
     
-    if (material.alphaTexed)
-        matAlpha = texture(alphaTex, fTexCoord).r;
+    if (material.alphaTexed)    //透明贴图
+        matAlpha = texture(alphaTex, fTexCoord).r;  //只取红通道
     
-    //=============================================
     //漫反射颜色
-    vec4 ambient = matAmbient * vec4(lit.ambient, 1.0f);
+    vec4 ambient = matAmbient * lit.ambient.rgbb;
+
     //散射颜色
     vec3 norm;
     if (material.heightTexed || material.normalTexed)
@@ -103,9 +107,9 @@ vec4 calcLight(Light lit)
         lightDir = normalize(tanLightDir);
     else
         lightDir = normalize(tanLightPos - tanFragPos);
-    
     float diff = max(dot(norm, lightDir), 0.0);
-    vec4 diffuse = diff * matDiffuse * vec4(lit.diffuse, 1.0f);
+    vec4 diffuse = diff * matDiffuse * lit.diffuse.rgbb;
+
     //镜面反射颜色
     vec3 viewDir = normalize(tanViewPos - tanFragPos);
     vec3 halfwayDir = normalize(lightDir + viewDir);
@@ -115,7 +119,8 @@ vec4 calcLight(Light lit)
         spec = pow(max(dot(norm, halfwayDir), 0.0), material.shininess);
     else
         spec = 0;
-    vec4 specular = spec * matSpecular * vec4(lit.specular, 1.0f);
+    vec4 specular = spec * matSpecular * lit.specular.rgbb;
+
     //衰减因子
     float attenuate;
     if (lit.type == 0)
@@ -123,9 +128,7 @@ vec4 calcLight(Light lit)
     else
     {
         float dist = length(tanLightPos - tanFragPos);
-        attenuate = 1.0 / (lit.attenuate.x
-                           + lit.attenuate.y * dist
-                           + lit.attenuate.z * dist * dist);
+        attenuate = 1.0 / (lit.attenuate.x + lit.attenuate.y * dist + lit.attenuate.z * dist * dist);
     }
     //软边缘
     float cutoff;
@@ -138,14 +141,15 @@ vec4 calcLight(Light lit)
     else
         cutoff = 1.0;
     //透明度
-    vec4 alpha = vec4(1.0);
+    vec4 alpha = constantList.yyyx;
     if (material.alphaTexed)
         alpha.a = matAlpha;
+    if (matDiffuse.a < alpha.a)
+        alpha.a = matDiffuse.a;
     
-//    float nsize = matBump.z;
     vec4 final = (ambient + (diffuse + specular) * cutoff) * attenuate;
-    //透明度只从散射贴图与透明贴图取
-    return vec4(final.rgb, matDiffuse.a) * alpha;
+    //只考虑散射贴图和透明贴图的透明度
+    return final.rgba * constantList.xxxy + alpha;
 }
 
 //忽略光照，只算散射
@@ -163,8 +167,11 @@ vec4 calcDiffuse()
 void main()
 {
     vec4 final = calcLight(lightDirect);
+    vec4 alpha = constantList.yyyx;
+    alpha.a = final.a;
+
     final += calcLight(lightSpot);
 //    vec4 final = calcDiffuse();
     
-    fragColor = final;
+    fragColor = final.rgba * constantList.xxxy + alpha;
 }
